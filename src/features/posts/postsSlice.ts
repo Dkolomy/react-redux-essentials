@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { nanoid } from '@reduxjs/toolkit'
 
 export type Post = {
   id: string
