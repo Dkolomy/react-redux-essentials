@@ -1,24 +1,36 @@
-import { StrictMode } from "react"
-import { createRoot } from "react-dom/client"
-import { Provider } from "react-redux"
-import { App } from "./App"
-import { store } from "./app/store"
-import "./index.css"
+import React from 'react'
+import { createRoot } from 'react-dom/client'
 
-const container = document.getElementById("root")
+import App from './App'
 
-if (container) {
-  const root = createRoot(container)
+import { worker } from './api/server'
+
+import './primitiveui.css'
+import './index.css'
+
+type MockWorker = {
+  start: (options?: { onUnhandledRequest?: 'bypass' | 'warn' | 'error' }) => Promise<unknown>
+}
+
+const mockWorker = worker as MockWorker
+
+// Wrap app rendering so we can wait for the mock API to initialize
+async function start() {
+  // Start our mock API server
+  await mockWorker.start({ onUnhandledRequest: 'bypass' })
+
+  const rootElement = document.getElementById('root')
+  if (!rootElement) {
+    throw new Error("Root element with id 'root' not found")
+  }
+
+  const root = createRoot(rootElement)
 
   root.render(
-    <StrictMode>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </StrictMode>,
-  )
-} else {
-  throw new Error(
-    "Root element with ID 'root' was not found in the document. Ensure there is a corresponding HTML element with the ID 'root' in your HTML file.",
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
   )
 }
+
+void start()
