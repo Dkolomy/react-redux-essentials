@@ -78,6 +78,14 @@ const eslintConfig = defineConfig(
       ],
     },
   },
+  {
+    name: "allow-react-redux-hooks-only-in-app-hooks",
+    files: ["src/app/hooks.ts"],
+    rules: {
+      // This file defines useAppSelector / useAppDispatch; it must import from react-redux.
+      "no-restricted-imports": [0],
+    },
+  },
 
   prettierConfig,
 )
