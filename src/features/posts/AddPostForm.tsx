@@ -1,7 +1,6 @@
 import { type SubmitEventHandler } from 'react'
 import { useAppDispatch } from '../../app/hooks'
 import { postAdded } from './postsSlice'
-import { nanoid } from '@reduxjs/toolkit'
 
 export const AddPostForm = () => {
   const dispatch = useAppDispatch()
@@ -14,7 +13,9 @@ export const AddPostForm = () => {
     const title = formData.get('postTitle') as string
     const content = formData.get('postContent') as string
 
-    dispatch(postAdded({ id: nanoid(), title, content }))
+    if (title && content) {
+      dispatch(postAdded(title, content))
+    }
 
     form.reset()
   }

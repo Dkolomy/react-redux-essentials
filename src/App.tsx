@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 
 import { Navbar } from './components/Navbar'
-import { PostsList } from './features/posts/PostsList'
-import { AddPostForm } from './features/posts/AddPostForm'
+import PostMainPage from './features/posts/PostMainPage'
+import SinglePostPage from './features/posts/SinglePostPage'
+import EditPostForm from './features/posts/EditPostForm'
 
 function App() {
   return (
@@ -13,10 +14,19 @@ function App() {
           <Route
             path="/"
             element={
-              <section className="posts-container">
-                <PostsList />
-                <AddPostForm />
-              </section>
+              <PostMainPage />
+            }
+          ></Route>
+          <Route
+            path="/posts/:postId"
+            element={
+              <SinglePostPage />
+            }
+          ></Route>
+          <Route
+            path="/editPost/:postId"
+            element={
+              <EditPostForm />
             }
           ></Route>
         </Routes>
