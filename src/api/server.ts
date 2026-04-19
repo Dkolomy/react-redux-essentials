@@ -130,10 +130,23 @@ for (let i = 0; i < NUM_USERS; i++) {
   }
 }
 
-const serializePost = (post: Post) => ({
-  ...post,
-  user: post.user!.id,
-})
+/** Wire format matches the Redux app: `userId`, not MSW's internal `user` relation. */
+const serializePost = (post: Post) => {
+  const userVal = post.user
+  const userId =
+    userVal && typeof userVal === 'object' && 'id' in userVal
+      ? (userVal as { id: string }).id
+      : String(userVal ?? '')
+
+  return {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    date: post.date,
+    reactions: post.reactions!,
+    userId,
+  }
+}
 
 /* MSW REST API Handlers */
 
@@ -165,14 +178,29 @@ export const handlers = [
       })
     }
 
-    data.date = new Date().toISOString()
-    const userId = data.user as string
+    const userId =
+      typeof data.userId === 'string'
+        ? data.userId
+        : typeof data.user === 'string'
+          ? data.user
+          : ''
 
     const user = db.user.findFirst({ where: { id: { equals: userId } } })
-    data.user = user
-    data.reactions = db.reaction.create()
+    if (!user) {
+      await delay(ARTIFICIAL_DELAY_MS)
+      return HttpResponse.json({ message: 'Unknown user' }, { status: 400 })
+    }
 
-    const post = db.post.create(data)
+    const title = typeof data.title === 'string' ? data.title : ''
+    const content = typeof data.content === 'string' ? data.content : ''
+
+    const post = db.post.create({
+      title,
+      content,
+      date: new Date().toISOString(),
+      user,
+      reactions: db.reaction.create(),
+    })
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json(serializePost(post))
   }),

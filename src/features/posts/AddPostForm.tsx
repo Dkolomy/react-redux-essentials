@@ -1,29 +1,52 @@
-import { type SubmitEventHandler } from 'react'
+import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
-import { postAdded } from './postsSlice'
+// import { postAdded } from './postsSlice'
 // import { selectAllUsers } from '../users/usersSlice'
 import { selectCurrentUsername } from '../auth/authSlice'
 
+import { addNewPost } from './postsSlice'
+
 export const AddPostForm = () => {
+  const [addRequestStatus, setAddRequestStatus] = useState<'idle' | 'pending'>('idle')
+
+
   const dispatch = useAppDispatch()
   const currentUsername = useAppSelector(selectCurrentUsername)
   // const users = useAppSelector(selectAllUsers)
 
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const form = e.currentTarget
     const formData = new FormData(form)
     const title = formData.get('postTitle') as string
     const content = formData.get('postContent') as string
-    const userId = currentUsername ?? ''
 
-    if (title && content) {
-      dispatch(postAdded(title, content, userId))
+    try {
+      setAddRequestStatus('pending')
+      await dispatch(addNewPost({ title, content, userId: currentUsername ?? '' }))
+      form.reset()
+    } catch (err) {
+      console.error('Failed to save the post:', err)
+    } finally {
+      setAddRequestStatus('idle')
     }
+}
 
-    form.reset()
-  }
+
+
+    // const form = e.currentTarget
+    // const formData = new FormData(form)
+    // const title = formData.get('postTitle') as string
+    // const content = formData.get('postContent') as string
+    // const userId = currentUsername ?? ''
+
+    // if (title && content) {
+    //   dispatch(postAdded(title, content, userId))
+    // }
+
+    // form.reset()
+  // }
 
   // const usersOptions = users.map((user) => (
   //   <option key={user.id} value={user.id}>
@@ -34,7 +57,7 @@ export const AddPostForm = () => {
   return (
     <section>
       <h2>Add a New Post</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => void handleSubmit(e)}>
         <label htmlFor="postTitle">Post Title:</label>
         <input type="text" id="postTitle" name="postTitle" required />
         {/* <label htmlFor="postAuthor">Author:</label> */}
@@ -44,7 +67,9 @@ export const AddPostForm = () => {
         </select> */}
         <label htmlFor="postContent">Content:</label>
         <textarea id="postContent" name="postContent" required />
-        <button type="submit">Save Post</button>
+        <button type="submit" disabled={addRequestStatus === 'pending'}>
+          Save Post
+        </button>
       </form>
     </section>
   )

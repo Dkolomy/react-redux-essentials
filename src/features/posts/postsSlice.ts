@@ -1,9 +1,9 @@
-import { createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {client} from '../../api/client'
 import {createAppAsyncThunk} from '../../app/withTypes'
 
 import type { RootState } from '../../app/store'
-import { sub } from 'date-fns'
+// import { sub } from 'date-fns'
 
 import {userLoggedOut} from '../auth/authSlice'
 
@@ -27,6 +27,15 @@ export type Post = {
 }
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
+type NewPost = Pick<Post, 'title' | 'content' | 'userId'>
+
+export const addNewPost = createAppAsyncThunk(
+  'posts/addNewPost', 
+  async (initialPost: NewPost) => {
+    const response = await client.post<Post>('/fakeApi/posts', initialPost)
+    return response.data
+  }
+)
 
 type PostsState = {
   posts: Post[]
@@ -40,18 +49,28 @@ const initialState: PostsState = {
   error: null
 }
 
-const initialReactions: Reactions = {
-  thumbsUp: 0,
-  tada: 0,
-  heart: 0,
-  rocket: 0,
-  eyes: 0
-}
+// const initialReactions: Reactions = {
+//   thumbsUp: 0,
+//   tada: 0,
+//   heart: 0,
+//   rocket: 0,
+//   eyes: 0
+// }
 
-export const fetchPosts = createAppAsyncThunk('posts/fetchPosts', async () => {
-  const response = await client.get<Post[]>('/fakeApi/posts')
-  return response.data
-})
+export const fetchPosts = createAppAsyncThunk(
+  'posts/fetchPosts', 
+  async () => {
+    const response = await client.get<Post[]>('/fakeApi/posts')
+    return response.data
+  },{
+    condition: (_arg, thunkApi) => {
+      const postsStatus  = selectPostsStatus(thunkApi.getState())
+      if (postsStatus !== 'idle') {
+        return false
+      }
+    }
+  }
+)
 
 // const initialState: Post[] = [
 //   { 
@@ -76,23 +95,23 @@ const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    postAdded: {
-      reducer: (state, action: PayloadAction<Post>) => {
-        state.posts.push(action.payload)
-      },
-      prepare: (title: string, content: string, userId: string) => {
-        return {
-          payload: {
-            id: nanoid(),
-            date: sub(new Date(), { minutes: 10 }).toISOString(),
-            title,
-            content,
-            userId,
-            reactions: initialReactions
-          }
-        }
-      }
-    },
+    // postAdded: {
+    //   reducer: (state, action: PayloadAction<Post>) => {
+    //     state.posts.push(action.payload)
+    //   },
+    //   prepare: (title: string, content: string, userId: string) => {
+    //     return {
+    //       payload: {
+    //         id: nanoid(),
+    //         date: sub(new Date(), { minutes: 10 }).toISOString(),
+    //         title,
+    //         content,
+    //         userId,
+    //         reactions: initialReactions
+    //       }
+    //     }
+    //   }
+    // },
     postUpdated: {
       reducer: (state, action: PayloadAction<PostUpdate>) => {
         const { id, title, content } = action.payload
@@ -138,10 +157,13 @@ const postsSlice = createSlice({
       state.status = 'failed'
       state.error = action.error.message ?? 'Something went wrong'
     })
+    .addCase(addNewPost.fulfilled, (state, action) => {
+      state.posts.push(action.payload)
+    })
   }
 })
 
-export const { postAdded, postUpdated, reactionAdded } = postsSlice.actions
+export const { postUpdated, reactionAdded } = postsSlice.actions
 
 export default postsSlice.reducer
 

@@ -48,7 +48,7 @@ export const PostsList = () => {
     }
   }, [postsStatus, dispatch])
 
-  let content: React.ReactNode = null
+  let content: React.ReactNode
 
   if (postsStatus === 'loading') {  
     content = <Spinner text="Loading..." />
