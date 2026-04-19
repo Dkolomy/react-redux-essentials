@@ -8,6 +8,8 @@ import SinglePostPage from './features/posts/SinglePostPage'
 import EditPostForm from './features/posts/EditPostForm'
 
 import { selectCurrentUsername } from './features/auth/authSlice'
+import { UserList } from './features/users/UserList'
+import { UserPage } from './features/users/UserPage'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useAppSelector(selectCurrentUsername)
@@ -46,6 +48,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditPostForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <UserList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users/:userId"
+            element={
+              <ProtectedRoute>
+                <UserPage />
               </ProtectedRoute>
             }
           />
