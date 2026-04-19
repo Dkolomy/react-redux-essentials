@@ -1,9 +1,21 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 
+import { useAppSelector } from './app/hooks'
 import { Navbar } from './components/Navbar'
+import { LoginPage } from './features/auth/LoginPage'
 import PostMainPage from './features/posts/PostMainPage'
 import SinglePostPage from './features/posts/SinglePostPage'
 import EditPostForm from './features/posts/EditPostForm'
+
+import { selectCurrentUser } from './features/auth/authSlice'
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const user = useAppSelector(selectCurrentUser)
+  if (!user) {
+    return <Navigate to="/" replace />
+  }
+  return <>{children}</>
+}
 
 function App() {
   return (
@@ -11,24 +23,33 @@ function App() {
       <Navbar />
       <div className="App">
         <Routes>
+          <Route path="/" element={<LoginPage />} />
           <Route
-            path="/"
+            path="/posts"
             element={
-              <PostMainPage />
+              <ProtectedRoute>
+                <PostMainPage />
+              </ProtectedRoute>
             }
-          ></Route>
+          />
           <Route
             path="/posts/:postId"
             element={
-              <SinglePostPage />
+              <ProtectedRoute>
+                <SinglePostPage />
+              </ProtectedRoute>
             }
-          ></Route>
+          />
           <Route
             path="/editPost/:postId"
             element={
-              <EditPostForm />
+              <ProtectedRoute>
+                <EditPostForm />
+              </ProtectedRoute>
             }
-          ></Route>
+          />
+          {/* Redirect any unknown routes to login */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>
