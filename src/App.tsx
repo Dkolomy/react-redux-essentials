@@ -7,10 +7,11 @@ import PostMainPage from './features/posts/PostMainPage'
 import SinglePostPage from './features/posts/SinglePostPage'
 import EditPostForm from './features/posts/EditPostForm'
 
-import { selectCurrentUser } from './features/auth/authSlice'
+import { selectCurrentUsername } from './features/auth/authSlice'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const user = useAppSelector(selectCurrentUser)
+  const user = useAppSelector(selectCurrentUsername)
+
   if (!user) {
     return <Navigate to="/" replace />
   }

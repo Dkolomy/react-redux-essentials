@@ -11,10 +11,8 @@ export const LoginPage = () => {
 
   const handleUserSelected: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
     const username = e.currentTarget.value
-    if (username) {
-      dispatch(userLoggedIn(username))
-      void navigate('/posts')
-    }
+    dispatch(userLoggedIn(username))
+    void navigate('/posts')
   }
 
   const usersOptions = users.map((user) => (

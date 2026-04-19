@@ -2,11 +2,11 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store'
 
 type AuthState = {
-  user: string | null
+  username: string | null
 }
 
 const initialState: AuthState = {
-  user: null
+  username: null
 }
 
 const authSlice = createSlice({
@@ -14,16 +14,16 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     userLoggedIn: (state, action: PayloadAction<string>) => {
-      state.user = action.payload
+      state.username = action.payload
     },
     userLoggedOut: (state) => {
-      state.user = null
+      state.username = null
     }
   }
 })
 
 export const { userLoggedIn, userLoggedOut } = authSlice.actions
 
-export const selectCurrentUser = (state: RootState) => state.auth.user
+export const selectCurrentUsername = (state: RootState) => state.auth.username
 
 export default authSlice.reducer

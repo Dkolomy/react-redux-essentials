@@ -4,8 +4,8 @@ import { AddPostForm } from './AddPostForm'
 const PostMainPage = () => {
   return (
     <section className="posts-container">
-      <PostsList />
       <AddPostForm />
+      <PostsList />
     </section>
   )
 }
