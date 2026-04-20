@@ -39,7 +39,9 @@ const usersSlice = createSlice({
 export default usersSlice.reducer
 
 export const selectCurrentUser = (state: RootState) => {
+  console.log('selectCurrentUser state', state)
   const currentUsername = selectCurrentUsername(state)
+  console.log('selectCurrentUser currentUsername', currentUsername)
   return selectUserById(state, currentUsername ?? undefined)
 }
 

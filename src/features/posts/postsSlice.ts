@@ -5,7 +5,7 @@ import {createAppAsyncThunk} from '../../app/withTypes'
 import type { RootState } from '../../app/store'
 // import { sub } from 'date-fns'
 
-import {userLoggedOut} from '../auth/authSlice'
+import {logout} from '../auth/authSlice'
 
 export type Reactions = {
   thumbsUp: number
@@ -140,7 +140,7 @@ const postsSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(userLoggedOut, () => {
+    builder.addCase(logout.fulfilled, () => {
       return {
         ...initialState,
         posts: []

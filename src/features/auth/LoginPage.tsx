@@ -2,16 +2,16 @@ import { useNavigate } from 'react-router-dom'
 
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { selectAllUsers } from '../users/usersSlice'
-import { userLoggedIn } from './authSlice'
+import { login } from './authSlice'
 
 export const LoginPage = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const users = useAppSelector(selectAllUsers)
 
-  const handleUserSelected: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+  const handleUserSelected = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const username = e.currentTarget.value
-    dispatch(userLoggedIn(username))
+    void dispatch(login(username))
     void navigate('/posts')
   }
 
