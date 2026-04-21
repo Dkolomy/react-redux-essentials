@@ -10,6 +10,7 @@ import EditPostForm from './features/posts/EditPostForm'
 import { selectCurrentUsername } from './features/auth/authSlice'
 import { UserList } from './features/users/UserList'
 import { UserPage } from './features/users/UserPage'
+import { NotificationsList } from './features/notifications/NotificationsList'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useAppSelector(selectCurrentUsername)
@@ -67,7 +68,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Redirect any unknown routes to login */}
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsList />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
