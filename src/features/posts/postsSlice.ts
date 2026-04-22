@@ -10,6 +10,7 @@ import {createAppAsyncThunk} from '../../app/withTypes'
 import { createSelector } from '@reduxjs/toolkit'
 
 import type { RootState } from '../../app/store'
+import type {AppStartListening} from '../../app/listenerMiddleware'
 // import { sub } from 'date-fns'
 
 import {logout} from '../auth/authSlice'
@@ -131,4 +132,22 @@ export const selectPostsByUser = createSelector(
 
 export const selectPostsStatus = (state: RootState) => state.posts.status
 export const selectPostsError = (state: RootState) => state.posts.error
+
+export const addPostListeners = (startListening: AppStartListening) => {
+  startListening({
+    actionCreator: addNewPost.fulfilled,
+    effect: async (_action, listenerApi) => {
+      const {toast} = await import('react-tiny-toast')
+
+      const toastId = toast.show('New post added!', {
+        variant: 'success',
+        position: 'bottom-right',
+        pause: true
+      })
+
+      await listenerApi.delay(5000)
+      toast.remove(toastId)
+    }
+  })
+}
 

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import {ToastContainer} from 'react-tiny-toast'
 
 import { useAppSelector } from './app/hooks'
 import { Navbar } from './components/Navbar'
@@ -78,7 +79,8 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </div>
+        <ToastContainer />
+        </div>
     </Router>
   )
 }
