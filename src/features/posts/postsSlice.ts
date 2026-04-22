@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {client} from '../../api/client'
 import {createAppAsyncThunk} from '../../app/withTypes'
+import { createSelector } from '@reduxjs/toolkit'
 
 import type { RootState } from '../../app/store'
 // import { sub } from 'date-fns'
@@ -72,46 +73,10 @@ export const fetchPosts = createAppAsyncThunk(
   }
 )
 
-// const initialState: Post[] = [
-//   { 
-//     id: '1', 
-//     title: 'First Post!', 
-//     content: 'Hello!', 
-//     userId: '0',
-//     date: sub(new Date(), { minutes: 10 }).toISOString(), 
-//     reactions: initialReactions
-//   },
-//   { 
-//     id: '2', 
-//     title: 'Second Post', 
-//     content: 'More text', 
-//     userId: '2',
-//     date: sub(new Date(), { minutes: 5 }).toISOString(),
-//     reactions: initialReactions
-//   }
-// ]
-
 const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    // postAdded: {
-    //   reducer: (state, action: PayloadAction<Post>) => {
-    //     state.posts.push(action.payload)
-    //   },
-    //   prepare: (title: string, content: string, userId: string) => {
-    //     return {
-    //       payload: {
-    //         id: nanoid(),
-    //         date: sub(new Date(), { minutes: 10 }).toISOString(),
-    //         title,
-    //         content,
-    //         userId,
-    //         reactions: initialReactions
-    //       }
-    //     }
-    //   }
-    // },
     postUpdated: {
       reducer: (state, action: PayloadAction<PostUpdate>) => {
         const { id, title, content } = action.payload
@@ -173,10 +138,10 @@ export const selectPostById = (state: RootState, postId: string) => {
   return state.posts.posts.find((post) => post.id === postId)
 }
 
-export const selectPostsByUser = (state: RootState, userId: string) => {
-  const allPosts = selectAllPosts(state)
-  return allPosts.filter((post) => post.userId === userId)
-}
+export const selectPostsByUser = createSelector(
+  [selectAllPosts, (_state: RootState, userId: string) => userId],
+  (posts: Post[], userId: string) => posts.filter((post) => post.userId === userId)
+)
 
 export const selectPostsStatus = (state: RootState) => state.posts.status
 export const selectPostsError = (state: RootState) => state.posts.error

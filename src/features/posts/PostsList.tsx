@@ -1,4 +1,4 @@
-import {useEffect} from 'react'
+import {memo, useEffect} from 'react'
 import { Link } from 'react-router-dom'
 
 import {useAppSelector, useAppDispatch} from '../../app/hooks'
@@ -20,7 +20,7 @@ type PostExcerptProps = {
   post: Post
 }
 
-function PostExcerpt({ post }: PostExcerptProps) {
+let PostExcerpt = ({ post }: PostExcerptProps) => {
   return (
     <article className="post-excerpt" key={post.id}>
       <h3>
@@ -35,6 +35,7 @@ function PostExcerpt({ post }: PostExcerptProps) {
     </article>
   )
 }
+PostExcerpt = memo(PostExcerpt) as typeof PostExcerpt
 
 export const PostsList = () => {
   const dispatch = useAppDispatch()
