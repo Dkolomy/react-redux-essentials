@@ -9,18 +9,19 @@ import { TimeAgo } from './TimeAgo'
 import {PostAuthor} from './PostAuthor'
 import { ReactionButtons } from './ReactionButtons'
 import {
-  type Post,
-  selectAllPosts,
+  fetchPosts,
+  selectPostById,
+  selectPostIds,
   selectPostsStatus,
   selectPostsError,
-  fetchPosts
 } from './postsSlice'
 
 type PostExcerptProps = {
-  post: Post
+  postId: string
 }
 
-let PostExcerpt = ({ post }: PostExcerptProps) => {
+let PostExcerpt = ({ postId }: PostExcerptProps) => {
+  const post = useAppSelector((state) => selectPostById(state, postId))
   return (
     <article className="post-excerpt" key={post.id}>
       <h3>
@@ -39,7 +40,7 @@ PostExcerpt = memo(PostExcerpt) as typeof PostExcerpt
 
 export const PostsList = () => {
   const dispatch = useAppDispatch()
-  const posts = useAppSelector(selectAllPosts)
+  const orderedPostIds = useAppSelector(selectPostIds)  
   const postsStatus = useAppSelector(selectPostsStatus)
   const postsError = useAppSelector(selectPostsError)
 
@@ -54,28 +55,12 @@ export const PostsList = () => {
   if (postsStatus === 'loading') {  
     content = <Spinner text="Loading..." />
   } else if (postsStatus === 'succeeded') {
-    const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
-    content = orderedPosts.map((post) => (
-      <PostExcerpt key={post.id} post={post} />
+    content = orderedPostIds.map((postId) => (
+      <PostExcerpt key={postId} postId={postId} />
     ))
   } else if (postsStatus === 'failed') {
     content = <div>{postsError}</div>
   }
-
-  // const renderedPosts = orderedPosts(posts).map((post) => (
-  //   <article className="post-excerpt" key={post.id}>
-  //     <h3>{post.title}</h3>
-  //     <div>
-  //       <PostAuthor userId={post.userId} />
-  //       <TimeAgo timestamp={post.date} />
-  //     </div>
-  //     <ReactionButtons post={post} />
-  //     <p className="post-content">{post.content.substring(0, 100)}</p>
-  //     <Link to={`/posts/${post.id}`} className="button muted-button">
-  //       View Post
-  //     </Link>
-  //   </article>
-  // ))
 
   return (
     <section className="posts-list">
