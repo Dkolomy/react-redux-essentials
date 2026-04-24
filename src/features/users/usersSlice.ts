@@ -10,7 +10,7 @@ import type { RootState } from '../../app/store'
 
 import {selectCurrentUsername} from '../auth/authSlice'
 
-type User = {
+export type User = {
   id: string
   name: string
 }

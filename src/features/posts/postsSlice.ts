@@ -35,7 +35,7 @@ export type Post = {
 }
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
-type NewPost = Pick<Post, 'title' | 'content' | 'userId'>
+export type NewPost = Pick<Post, 'title' | 'content' | 'userId'>
 
 export const addNewPost = createAppAsyncThunk(
   'posts/addNewPost', 

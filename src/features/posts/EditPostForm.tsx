@@ -5,7 +5,9 @@ import { postUpdated, selectPostById } from './postsSlice'
 
 const EditPostForm = () => {
   const { postId } = useParams()
-  const post = useAppSelector((state) => selectPostById(state, postId ?? ''))
+  const post = useAppSelector((state) =>
+    postId ? selectPostById(state, postId) : undefined,
+  )
 
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -27,7 +29,7 @@ const EditPostForm = () => {
     const content = formData.get('postContent') as string
 
     if (postId && typeof title === 'string' && typeof content === 'string' && title && content) {
-      dispatch(postUpdated(title, content, postId));
+      dispatch(postUpdated({ id: postId, title, content }));
       void navigate(`/posts/${postId}`);
     }
   }
