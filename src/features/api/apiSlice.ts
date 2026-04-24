@@ -1,9 +1,8 @@
 import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 
 import type {Post, NewPost} from '../../features/posts/postsSlice'
-import type {User} from '../../features/users/usersSlice'
 import type {ClientNotification} from '../../features/notifications/notificationsSlice'
-export type {Post, User, ClientNotification}
+export type {Post, ClientNotification}
 
 export const apiSlice = createApi({
   reducerPath: 'api',
@@ -37,17 +36,12 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: (_result, _error, arg) => [{ type: 'Post' as const, id: arg.id }],
     }),
-    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    getUsers: builder.query<User[], void>({
-      query: () => '/users'
-    }),
   }),
 })
 
 export const {
   useGetPostsQuery, 
   useGetPostQuery,
-  useGetUsersQuery,
   useAddNewPostMutation,
   useEditPostMutation,
 } = apiSlice
