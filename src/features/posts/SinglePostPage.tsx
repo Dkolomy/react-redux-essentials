@@ -26,8 +26,8 @@ const SinglePostPage = () => {
       <article className="post">
         <h2>{post.title}</h2>
         <div>
-          <PostAuthor userId={post.userId} />
-          <TimeAgo timestamp={post.date} />
+          <PostAuthor userId={post.userId ?? ''} />
+          <TimeAgo timestamp={post.date ?? ''} />
         </div>
         <p className="post-content">{post.content}</p>
         <ReactionButtons post={post} />

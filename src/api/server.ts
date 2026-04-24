@@ -3,7 +3,7 @@ import { setupWorker } from 'msw/browser'
 import { factory, oneOf, manyOf, primaryKey } from '@mswjs/data'
 import { nanoid } from '@reduxjs/toolkit'
 import { faker } from '@faker-js/faker/locale/en'
-import { Server as MockSocketServer, Client } from 'mock-socket'
+import { Server as MockSocketServer, type Client } from 'mock-socket'
 
 import { parseISO } from 'date-fns'
 
@@ -23,23 +23,19 @@ function delay(ms: number) {
 // Set up a seeded random number generator, so that we get
 // a consistent set of users / entries each time the page loads.
 // This can be reset by deleting this localStorage value,
-// or turned off by setting `useSeededRNG` to false.
-let useSeededRNG = true
+// or turned off by replacing this seeded init behavior.
+let randomSeedString = localStorage.getItem('randomTimestampSeed')
+let seedDate: Date
 
-if (useSeededRNG) {
-  let randomSeedString = localStorage.getItem('randomTimestampSeed')
-  let seedDate
-
-  if (randomSeedString) {
-    seedDate = new Date(randomSeedString)
-  } else {
-    seedDate = new Date()
-    randomSeedString = seedDate.toISOString()
-    localStorage.setItem('randomTimestampSeed', randomSeedString)
-  }
-
-  faker.seed(seedDate.getTime())
+if (randomSeedString) {
+  seedDate = new Date(randomSeedString)
+} else {
+  seedDate = new Date()
+  randomSeedString = seedDate.toISOString()
+  localStorage.setItem('randomTimestampSeed', randomSeedString)
 }
+
+faker.seed(seedDate.getTime())
 
 function getRandomInt(min: number, max: number) {
   return faker.number.int({ min, max })
@@ -136,14 +132,16 @@ const serializePost = (post: Post) => {
   const userId =
     userVal && typeof userVal === 'object' && 'id' in userVal
       ? (userVal as { id: string }).id
-      : String(userVal ?? '')
+      : typeof userVal === 'string'
+        ? userVal
+        : ''
 
   return {
     id: post.id,
     title: post.title,
     content: post.content,
     date: post.date,
-    reactions: post.reactions!,
+    reactions: post.reactions,
     userId,
   }
 }
@@ -158,7 +156,7 @@ export const handlers = [
     currentUser = data.username
     return HttpResponse.json({ success: true })
   }),
-  http.post('/fakeApi/logout', async function () {
+  http.post('/fakeApi/logout', function () {
     currentUser = null
     return HttpResponse.json({ success: true })
   }),
@@ -168,7 +166,7 @@ export const handlers = [
     return HttpResponse.json(posts)
   }),
   http.post('/fakeApi/posts', async function ({ request }) {
-    const data = (await request.json())! as Record<string, unknown>
+    const data = (await request.json()) as Record<string, unknown>
 
     if ('content' in data && data.content === 'error') {
       await delay(ARTIFICIAL_DELAY_MS)
@@ -208,17 +206,23 @@ export const handlers = [
     const postId = firstFromArray(params.postId)
     const post = db.post.findFirst({
       where: { id: { equals: postId } },
-    })!
+    })
+    if (!post) {
+      return HttpResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json(serializePost(post))
   }),
   http.patch('/fakeApi/posts/:postId', async ({ request, params }) => {
-    const { id, ...data } = (await request.json()) as Post
+    const data = (await request.json()) as Partial<Post>
     const postId = firstFromArray(params.postId)
     const updatedPost = db.post.update({
       where: { id: { equals: postId } },
       data,
-    })!
+    })
+    if (!updatedPost) {
+      return HttpResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json(serializePost(updatedPost))
   }),
@@ -227,7 +231,10 @@ export const handlers = [
     const postId = firstFromArray(params.postId)
     const post = db.post.findFirst({
       where: { id: { equals: postId } },
-    })!
+    })
+    if (!post) {
+      return HttpResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
 
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json({ comments: post.comments })
@@ -238,17 +245,28 @@ export const handlers = [
     const { reaction } = (await request.json()) as { reaction: ReactionName }
     const post = db.post.findFirst({
       where: { id: { equals: postId } },
-    })!
+    })
+    if (!post) {
+      return HttpResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
+    const currentReactions = post.reactions
+    if (!currentReactions) {
+      return HttpResponse.json({ message: 'Reactions not found' }, { status: 400 })
+    }
+    const updatedReactionCount = currentReactions[reaction] + 1
 
     const updatedPost = db.post.update({
       where: { id: { equals: postId } },
       data: {
         reactions: {
-          ...post.reactions!,
-          [reaction]: (post.reactions![reaction] += 1),
+          ...currentReactions,
+          [reaction]: updatedReactionCount,
         },
       },
-    })!
+    })
+    if (!updatedPost) {
+      return HttpResponse.json({ message: 'Post not found' }, { status: 404 })
+    }
 
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json(serializePost(updatedPost))
@@ -258,7 +276,7 @@ export const handlers = [
     const since = parsedUrl.searchParams.get('since') ?? undefined
     const numNotifications = getRandomInt(1, 5)
 
-    let notifications = generateRandomNotifications(since, currentUser, numNotifications, db)
+    const notifications = generateRandomNotifications(since, currentUser, numNotifications, db)
 
     await delay(ARTIFICIAL_DELAY_MS)
     return HttpResponse.json(notifications)
@@ -276,7 +294,7 @@ export const worker = setupWorker(...handlers)
 
 const socketServer = new MockSocketServer('ws://localhost')
 
-let currentSocket: Client
+let currentSocket: Client | null = null
 
 const getSocket = () => {
   if (!currentSocket) {
@@ -288,7 +306,12 @@ const getSocket = () => {
   return currentSocket
 }
 
-const sendMessage = (obj: any) => {
+type SocketMessage = {
+  type: 'notifications'
+  payload: unknown
+}
+
+const sendMessage = (obj: SocketMessage) => {
   getSocket().send(JSON.stringify(obj))
 }
 
@@ -310,11 +333,15 @@ socketServer.on('connection', (socket) => {
   currentSocket = socket
 
   socket.on('message', (data) => {
-    const message = JSON.parse(data as string)
+    const parsed: unknown = JSON.parse(data as string)
+    if (!parsed || typeof parsed !== 'object' || !('type' in parsed)) {
+      return
+    }
+    const message = parsed as Partial<SocketMessage>
 
     switch (message.type) {
       case 'notifications': {
-        const since = message.payload
+        const since = typeof message.payload === 'string' ? message.payload : ''
         sendRandomNotifications(since)
         break
       }
@@ -346,7 +373,7 @@ function generateRandomNotifications(
 
   // Create N random notifications. We won't bother saving these
   // in the DB - just generate a new batch and return them.
-  const notifications = [...Array(numNotifications)].map(() => {
+  const notifications = Array.from({ length: numNotifications }, () => {
     const allUsers = db.user.getAll()
     const otherUsers = allUsers.filter((user) => user.id !== currentUser)
 

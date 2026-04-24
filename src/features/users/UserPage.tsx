@@ -1,18 +1,38 @@
 import {Link, useParams} from 'react-router-dom'
+import {createSelector} from '@reduxjs/toolkit'
 
 import {useAppSelector} from '../../app/hooks'
-import { selectPostsByUser } from '../posts/postsSlice'
+// import { selectPostsByUser } from '../posts/postsSlice'
 
+import {useGetPostsQuery, type Post} from '../api/apiSlice'
 import {selectUserById} from './usersSlice'
+
+type PostsResultArg = {
+  data?: Post[]
+}
+
+const selectPostsForUser = createSelector(
+  (res: PostsResultArg) => res.data,
+  (_res: PostsResultArg, userId: string) => userId,
+  (data, userId) => data?.filter((post) => post.userId === userId)
+)
 
 export const UserPage = () => {
   const { userId } = useParams();
 
   // Always call hooks unconditionally at the top level before returning early
   const user = useAppSelector((state) => selectUserById(state, userId ?? ''));
-  const postsForUser = useAppSelector((state) => selectPostsByUser(state, userId ?? ''));
 
-  if (!userId || !user) {
+  const { postsForUser } = useGetPostsQuery(undefined, {
+    selectFromResult: (result) => ({
+      ...result,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      postsForUser: selectPostsForUser(result, userId!)
+    }),
+  });
+  // const postsForUser = useAppSelector((state) => selectPostsByUser(state, userId ?? ''));
+
+  if (!userId) {
     return (
       <section>
         <h2>User not found!</h2>
@@ -20,7 +40,7 @@ export const UserPage = () => {
     );
   }
 
-  const postTitles = postsForUser.map((post) => (
+  const postTitles = postsForUser?.map((post) => (
     <li key={post.id}>
       <Link to={`/posts/${post.id}`}>{post.title}</Link>
     </li>

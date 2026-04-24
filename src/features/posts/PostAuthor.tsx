@@ -13,7 +13,7 @@ export const PostAuthor = ({ userId, showPrefix = true }: PostAuthorProps) => {
   return (
     <span>
       {showPrefix ? 'by ' : ''}
-      {author ? author.name : 'Unknown author'}
+      {author.name}
     </span>
   )
 }

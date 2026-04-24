@@ -1,7 +1,7 @@
-import React from 'react'
+import type { CSSProperties } from 'react'
 
-interface UserIconProps {
-  size: React.CSSProperties['height']
+type UserIconProps = {
+  size: CSSProperties['height']
 }
 
 // SVG source: https://flowbite.com/icons/

@@ -20,6 +20,7 @@ const eslintConfig = defineConfig(
       "**/.tmp/",
       "**/.yarn/",
       "**/coverage/",
+      "**/public/mockServiceWorker.js",
     ],
   },
   {

@@ -8,6 +8,7 @@ export type {Post, User, ClientNotification}
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: '/fakeApi' }),
+  tagTypes: ['Post'],
   endpoints: (builder) => ({
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     getPosts: builder.query<Post[], void>({

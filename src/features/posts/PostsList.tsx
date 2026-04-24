@@ -20,8 +20,8 @@ let PostExcerpt = ({ post }: PostExcerptProps) => {
         <Link to={`/posts/${post.id}`}>{post.title}</Link>
       </h3>
       <div>
-        <PostAuthor userId={post.userId} />
-        <TimeAgo timestamp={post.date} />
+        <PostAuthor userId={post.userId ?? ''} />
+        <TimeAgo timestamp={post.date ?? ''} />
       </div>
       <p className="post-content">{post.content.substring(0, 100)}</p>
       <ReactionButtons post={post} />
@@ -43,7 +43,7 @@ export const PostsList = () => {
 
   const sortedPosts = useMemo(() => {
     const sortedPosts = posts.slice()
-    sortedPosts.sort((a, b) => b.date.localeCompare(a.date))
+    sortedPosts.sort((a, b) => b.date?.localeCompare(a.date ?? '') ?? 0)
     return sortedPosts
   }, [posts])
 

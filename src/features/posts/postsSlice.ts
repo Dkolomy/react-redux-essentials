@@ -87,8 +87,8 @@ const postsSlice = createSlice({
       const { postId, reaction } = action.payload
 
       const existingPost = state.entities[postId] as Post | undefined
-      if (existingPost) {
-        existingPost.reactions![reaction] = (existingPost.reactions![reaction]) + 1
+      if (existingPost?.reactions) {
+        existingPost.reactions[reaction] = existingPost.reactions[reaction] + 1
       }
     },  
   },
