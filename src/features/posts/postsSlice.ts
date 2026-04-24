@@ -13,6 +13,7 @@ import type { RootState } from '../../app/store'
 import type {AppStartListening} from '../../app/listenerMiddleware'
 // import { sub } from 'date-fns'
 
+import {apiSlice} from '../api/apiSlice'
 import {logout} from '../auth/authSlice'
 
 export type Reactions = {
@@ -29,9 +30,9 @@ export type Post = {
   id: string
   title: string
   content: string
-  userId: string
-  date: string
-  reactions: Reactions
+  userId?: string
+  date?: string
+  reactions?: Reactions
 }
 
 type PostUpdate = Pick<Post, 'id' | 'title' | 'content'>
@@ -51,7 +52,7 @@ type PostsState = EntityState<Post, string> & {
 }
 
 const postsAdapter = createEntityAdapter<Post>({
-  sortComparer: (a, b) => b.date.localeCompare(a.date)
+  sortComparer: (a, b) => b.date?.localeCompare(a.date ?? '') ?? 0
 })
 
 const initialState: PostsState = postsAdapter.getInitialState({
@@ -87,9 +88,9 @@ const postsSlice = createSlice({
 
       const existingPost = state.entities[postId] as Post | undefined
       if (existingPost) {
-        existingPost.reactions[reaction]++
+        existingPost.reactions![reaction] = (existingPost.reactions![reaction]) + 1
       }
-    },
+    },  
   },
   extraReducers: (builder) => {
     builder.addCase(logout.fulfilled, () => {
@@ -135,7 +136,7 @@ export const selectPostsError = (state: RootState) => state.posts.error
 
 export const addPostListeners = (startListening: AppStartListening) => {
   startListening({
-    actionCreator: addNewPost.fulfilled,
+    matcher: apiSlice.endpoints.addNewPost.matchFulfilled,
     effect: async (_action, listenerApi) => {
       const {toast} = await import('react-tiny-toast')
 

@@ -12,10 +12,13 @@ export const apiSlice = createApi({
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     getPosts: builder.query<Post[], void>({
       query: () => '/posts',
-      providesTags: ['Post'],
+      providesTags: (result = []) => [
+        'Post',
+        ...result.map(({ id }) => ({ type: 'Post' as const, id }))],
     }),
     getPost: builder.query<Post, string>({
       query: (postId) => `/posts/${postId}`,
+      providesTags: (_result, _error, arg) => [{ type: 'Post' as const, id: arg }],
     }),
     addNewPost: builder.mutation<Post, NewPost>({
       query: (initialPost) => ({
@@ -25,7 +28,25 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Post'],
     }),
+    editPost: builder.mutation<Post, Post>({
+      query: (post) => ({
+        url: `/posts/${post.id}`,
+        method: 'PATCH',
+        body: post as unknown as Record<string, unknown>,
+      }),
+      invalidatesTags: (_result, _error, arg) => [{ type: 'Post' as const, id: arg.id }],
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    getUsers: builder.query<User[], void>({
+      query: () => '/users'
+    }),
   }),
 })
 
-export const {useGetPostsQuery, useGetPostQuery, useAddNewPostMutation} = apiSlice
+export const {
+  useGetPostsQuery, 
+  useGetPostQuery,
+  useGetUsersQuery,
+  useAddNewPostMutation,
+  useEditPostMutation,
+} = apiSlice
