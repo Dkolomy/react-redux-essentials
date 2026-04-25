@@ -1,4 +1,4 @@
-import {memo, useMemo} from 'react'
+import {useMemo} from 'react'
 import { Link } from 'react-router-dom'
 
 import {Spinner} from '../../components/Spinner'
@@ -13,7 +13,7 @@ type PostExcerptProps = {
   post: Post
 }
 
-let PostExcerpt = ({ post }: PostExcerptProps) => {
+const PostExcerpt = ({ post }: PostExcerptProps) => {
   return (
     <article className="post-excerpt" key={post.id}>
       <h3>
@@ -28,7 +28,7 @@ let PostExcerpt = ({ post }: PostExcerptProps) => {
     </article>
   )
 }
-PostExcerpt = memo(PostExcerpt) as typeof PostExcerpt
+// PostExcerpt = memo(PostExcerpt) as typeof PostExcerpt
 
 export const PostsList = () => {
   const {

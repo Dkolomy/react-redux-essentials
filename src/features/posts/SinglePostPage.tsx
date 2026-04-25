@@ -17,6 +17,7 @@ const SinglePostPage = () => {
   } = useGetPostQuery(postId ?? '')
 
   const canEdit = currentUsername === post?.userId
+  
   let content: React.ReactNode
 
   if(isFetching) {

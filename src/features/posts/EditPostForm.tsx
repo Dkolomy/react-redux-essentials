@@ -10,7 +10,7 @@ const EditPostForm = () => {
 
   const { data: post } = useGetPostQuery(postId ?? '')
 
-  const [updatePost] = useEditPostMutation()
+  const [updatePost, {isLoading}] = useEditPostMutation()
 
   if (!postId) {
     return (

@@ -4,13 +4,14 @@ import {
   createEntityAdapter,
   type EntityState,
 } from '@reduxjs/toolkit'
-
 import {client} from '../../api/client'
-import {createAppAsyncThunk} from '../../app/withTypes'
-import { createSelector } from '@reduxjs/toolkit'
 
 import type { RootState } from '../../app/store'
 import type {AppStartListening} from '../../app/listenerMiddleware'
+import {createAppAsyncThunk} from '../../app/withTypes'
+
+import { createSelector } from '@reduxjs/toolkit'
+
 // import { sub } from 'date-fns'
 
 import {apiSlice} from '../api/apiSlice'
