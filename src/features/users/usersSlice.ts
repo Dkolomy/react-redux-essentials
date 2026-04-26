@@ -2,13 +2,9 @@ import {
   createSelector,
   createEntityAdapter,
   type EntityState,
-  // createSlice 
 } from '@reduxjs/toolkit'
 
-// import { client } from '../../api/client'
-
 import type { RootState } from '../../app/store'
-// import { createAppAsyncThunk } from '../../app/withTypes'
 
 import {apiSlice} from '../api/apiSlice'
 import {selectCurrentUsername} from '../auth/authSlice'
@@ -35,26 +31,11 @@ export const apiSliceWithUsers = apiSlice.injectEndpoints({
 
 export const { useGetUsersQuery } = apiSliceWithUsers
 
-// const emptyUsers: User[] = []
-
 export const selectUsersResult = apiSliceWithUsers.endpoints.getUsers.select()
 const selectUsersData = createSelector(
   selectUsersResult,
   (usersResult) => usersResult.data ?? initialState
 )
-
-// export const selectAllUsers = createSelector(
-//   selectUsersResult,
-//   (usersResult) => usersResult.data ?? emptyUsers
-// )
-
-// export const selectUserById = createSelector(
-//   selectAllUsers,
-//   (_state: RootState, userId: string) => userId,
-//   (users, userId) => (Array.isArray(users) ? 
-//     users.find((user: User) => user.id === userId) : 
-//     users.entities[userId])
-// )
 
 export const selectCurrentUser = (state: RootState) => {
   const currentUsername = selectCurrentUsername(state)
