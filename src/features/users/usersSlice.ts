@@ -1,6 +1,7 @@
 import { 
-  // createEntityAdapter,
   createSelector,
+  createEntityAdapter,
+  type EntityState,
   // createSlice 
 } from '@reduxjs/toolkit'
 
@@ -17,39 +18,30 @@ export type User = {
   name: string
 }
 
+// const usersAdapter = createEntityAdapter<User>()
+// const initialState = usersAdapter.getInitialState()
+
 export const apiSliceWithUsers = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-    getUsers: builder.query<User[], void>({
+    getUsers: builder.query<EntityState<User, string>, void>({
       query: () => '/users',
+//       transformResponse: (response: User[]) => {
+//         return usersAdapter.setAll(initialState, response)
+//       },
     }),
   }),
 })
 
 export const { useGetUsersQuery } = apiSliceWithUsers
 
-// const usersAdapter = createEntityAdapter<User>()
-// const initialState = usersAdapter.getInitialState()
-
-// export const fetchUsers = createAppAsyncThunk('users/fetchUsers', async () => {
-//   const response = await client.get<User[]>('/fakeApi/users')
-//   return response.data
-// })
-
-// const usersSlice = createSlice({  
-//   name: 'users',
-//   initialState,
-//   reducers: {},
-//   extraReducers: (builder) => {
-//     builder.addCase(fetchUsers.fulfilled, (state, action) => {
-//       usersAdapter.setAll(state, action.payload)
-//     })
-//   }
-// })
-
 const emptyUsers: User[] = []
 
 export const selectUsersResult = apiSliceWithUsers.endpoints.getUsers.select()
+// const selectUsersData = createSelector(
+//   selectUsersResult,
+//   (usersResult) => usersResult.data ?? initialState
+// )
 
 export const selectAllUsers = createSelector(
   selectUsersResult,
@@ -59,38 +51,15 @@ export const selectAllUsers = createSelector(
 export const selectUserById = createSelector(
   selectAllUsers,
   (_state: RootState, userId: string) => userId,
-  (users, userId) => users.find((user) => user.id === userId)
+  (users, userId) => (Array.isArray(users) ? 
+    users.find((user: User) => user.id === userId) : 
+    users.entities[userId])
 )
-
-// export const apiSliceWithUsers = apiSlice.injectEndpoints({
-//   endpoints: (builder) => ({
-//     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-//     getUsers: builder.query<EntityState<User, string>, void>({
-//       query: () => '/users',
-//       transformResponse: (response: User[]) => usersAdapter.setAll(initialState, response),
-//     }),
-//   }),
-// })
-
-// export const { useGetUsersQuery } = apiSliceWithUsers
-
-// export const selectUsersResult = apiSliceWithUsers.endpoints.getUsers.select()
-// export const selectUsersData = createSelector(
-//   selectUsersResult,
-//   (usersResult) => usersResult.data ?? initialState
-// )
-
-// export default usersSlice.reducer
-
-// export const {
-//   selectAll: selectAllUsers,
-//   selectById: selectUserById,
-// } = usersAdapter.getSelectors((state: RootState) => state.users)
 
 export const selectCurrentUser = (state: RootState) => {
   const currentUsername = selectCurrentUsername(state)
   if (currentUsername) {
-    return selectUserById(state, currentUsername)
+    return selectUserById(state, currentUsername) ?? undefined
   }
 }
 
