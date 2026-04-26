@@ -1,5 +1,6 @@
 import {Link, useParams} from 'react-router-dom'
 import {createSelector} from '@reduxjs/toolkit'
+import type {TypedUseQueryStateResult} from '@reduxjs/toolkit/query/react'
 
 import {useAppSelector} from '../../app/hooks'
 // import { selectPostsByUser } from '../posts/postsSlice'
@@ -7,13 +8,15 @@ import {useAppSelector} from '../../app/hooks'
 import {useGetPostsQuery, type Post} from '../api/apiSlice'
 import {selectUserById} from './usersSlice'
 
-type PostsResultArg = {
-  data?: Post[]
-}
+// type PostsResultArg = {
+//   data?: Post[]
+// }
+
+type GetPostsSelectorResultArg = TypedUseQueryStateResult<Post[], unknown, any>
 
 const selectPostsForUser = createSelector(
-  (res: PostsResultArg) => res.data,
-  (_res: PostsResultArg, userId: string) => userId,
+  (res: GetPostsSelectorResultArg) => res.data,
+  (_res: GetPostsSelectorResultArg, userId: string) => userId,
   (data, userId) => data?.filter((post) => post.userId === userId)
 )
 
