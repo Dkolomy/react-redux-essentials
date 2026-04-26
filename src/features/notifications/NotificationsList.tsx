@@ -6,18 +6,20 @@ import {TimeAgo} from '../posts/TimeAgo'
 
 import {PostAuthor} from '../posts/PostAuthor'
 
-import {selectAllNotifications, allNotificationsRead, type ClientNotification} from './notificationsSlice'
+import {allNotificationsRead, selectMetadataEntities, useGetNotificationsQuery} from './notificationsSlice'
 
 export const NotificationsList = () => {
   const dispatch = useAppDispatch()
-  const notifications = useAppSelector(selectAllNotifications)
-
+  const {data: notifications = []} = useGetNotificationsQuery()
+  const notificationMatadata = useAppSelector(selectMetadataEntities)
+  
   useLayoutEffect(() => {
     dispatch(allNotificationsRead())
   })
 
-  const renderedNotifications = notifications.map((notification: ClientNotification) => {
-    const notificationClassname = notification.isNew ? 'notification new' : 'notification'
+  const renderedNotifications = notifications.map((notification) => {
+    const metadata = notificationMatadata[notification.id]
+    const notificationClassname = metadata.isNew ? 'notification' : 'notification new'
 
     return (
     <div key={notification.id} className={notificationClassname}>
