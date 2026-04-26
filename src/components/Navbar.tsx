@@ -5,8 +5,9 @@ import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { logout } from '../features/auth/authSlice'
 import { selectCurrentUser } from '../features/users/usersSlice'
 import { 
-  fetchNotifications, 
-  selectUnreadNotificationsCount 
+  fetchNotificationsWebsocket, 
+  selectUnreadNotificationsCount,
+  useGetNotificationsQuery
 } from '../features/notifications/notificationsSlice'
 // import { selectCurrentUsername } from '../features/auth/authSlice'
 
@@ -16,6 +17,8 @@ export const Navbar = () => {
   const dispatch = useAppDispatch()
   // const username = useAppSelector(selectCurrentUsername)
   const user = useAppSelector(selectCurrentUser)
+
+  useGetNotificationsQuery()
 
   const numUnreadNotifications = useAppSelector(selectUnreadNotificationsCount)
 
@@ -31,7 +34,7 @@ export const Navbar = () => {
 
     const onRefreshNotificationsClicked = () => {
       console.log('Navbar onRefreshNotificationsClicked')
-      void dispatch(fetchNotifications())
+      void dispatch(fetchNotificationsWebsocket())
     }
 
     let unreadNotificationsBadge: React.ReactNode | undefined

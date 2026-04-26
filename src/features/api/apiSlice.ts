@@ -1,9 +1,9 @@
 import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 
 import type {Post, NewPost, ReactionName} from '../../features/posts/postsSlice'
-import type {ClientNotification} from '../../features/notifications/notificationsSlice'
+import type {ServerNotification} from '../../features/notifications/notificationsSlice'
 // import type { User } from '../users/usersSlice'
-export type {Post, ClientNotification}
+export type {Post, ServerNotification}
 
 export const apiSlice = createApi({
   reducerPath: 'api',

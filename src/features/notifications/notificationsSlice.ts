@@ -1,9 +1,18 @@
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
+import { 
+  createSlice, 
+  createEntityAdapter, 
+  createSelector,
+  createAction,
+  isAnyOf
+ } from '@reduxjs/toolkit'
 
-import {client} from '../../api/client'
+// import {client} from '../../api/client'
 
-import type {RootState} from '../../app/store'
-import {createAppAsyncThunk} from '../../app/withTypes'
+import type { RootState, AppDispatch } from '../../app/store'
+
+// import {createAppAsyncThunk} from '../../app/withTypes'
+
+import {forceGenerateNotifications} from '../../api/server'
 
 import {apiSlice} from '../api/apiSlice'
 
@@ -20,30 +29,98 @@ export type NotificationMetadata = {
   isNew: boolean
 }
 
-export const fetchNotifications = createAppAsyncThunk(
-  'notifications/fetchNotifications',
-  async () => {
-    const response = await client.get<ServerNotification[]>(
-      `/fakeApi/notifications`
-    )
-    return response.data
-  }
-)
+// export const { useGetNotificationsQuery } = apiSliceWithNotifications
+
+// export const fetchNotifications = createAppAsyncThunk(
+//   'notifications/fetchNotifications',
+//   async () => {
+//     const response = await client.get<ServerNotification[]>(
+//       `/fakeApi/notifications`
+//     )
+//     return response.data
+//   }
+// )
 
 const metadataAdapter = createEntityAdapter<NotificationMetadata>()
 
 const initialState = metadataAdapter.getInitialState()
+
+const notificetionsReceived = createAction<ServerNotification[]>('notifications/notificationsReceived')
 
 export const apiSliceWithNotifications = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     getNotifications: builder.query<ServerNotification[], void>({
       query: () => '/notifications',
-    }),
+      async onCacheEntryAdded(arg, lifecycleApi) {
+        const ws = new WebSocket('ws://localhost')
+        try {
+          await lifecycleApi.cacheDataLoaded
+
+          const listener = (event: MessageEvent<string>) => {
+            const message: {
+              type: 'notifications'
+              payload: ServerNotification[]
+            } = JSON.parse(event.data) as {
+              type: 'notifications'
+              payload: ServerNotification[]
+            }
+            switch (message.type) {
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              case 'notifications': {
+                lifecycleApi.updateCachedData((draft) => {
+                  draft.push(...message.payload)
+                  draft.sort((a, b) => b.date.localeCompare(a.date))
+                })
+                lifecycleApi.dispatch(notificetionsReceived(message.payload))
+                break
+              }
+              default: {
+                break
+              }
+            }
+          }
+
+          ws.addEventListener('message', listener)
+
+          // Wait for the cache to be removed, then cleanup
+          await lifecycleApi.cacheEntryRemoved
+
+          ws.removeEventListener('message', listener)
+          ws.close()
+        } catch {
+          // If an error occurs, always close the socket
+          ws.close()
+        }
+      },
+    })
   }),
 })
 
 export const { useGetNotificationsQuery } = apiSliceWithNotifications
+
+const matchNotificationsReceived = isAnyOf(
+  notificetionsReceived,
+  apiSliceWithNotifications.endpoints.getNotifications.matchFulfilled,
+)
+
+export const fetchNotificationsWebsocket =
+  () => (_dispatch: AppDispatch, getState: () => RootState) => {
+    const allNotifications = selectNotificationsData(getState())
+    const [latestNotification] = allNotifications
+    const latestTimestamp = latestNotification.date
+    forceGenerateNotifications(latestTimestamp)
+  }
+
+const emptyNotifications: ServerNotification[] = []
+
+export const seelctNotificationsResult = 
+  apiSliceWithNotifications.endpoints.getNotifications.select()
+
+const selectNotificationsData = createSelector(
+  seelctNotificationsResult,
+  (notificationsResult) => notificationsResult.data ?? emptyNotifications
+)
 
 const notificationsSlice = createSlice({
   name: 'notifications',
@@ -57,7 +134,7 @@ const notificationsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addMatcher(
-      apiSliceWithNotifications.endpoints.getNotifications.matchFulfilled,
+      matchNotificationsReceived,
       (state, action) => {
         const notificationsWithMetadata: NotificationMetadata[] = 
           action.payload.map((notification) => ({
