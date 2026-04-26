@@ -1,6 +1,6 @@
 import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 
-import type {Post, NewPost} from '../../features/posts/postsSlice'
+import type {Post, NewPost, ReactionName} from '../../features/posts/postsSlice'
 import type {ClientNotification} from '../../features/notifications/notificationsSlice'
 // import type { User } from '../users/usersSlice'
 export type {Post, ClientNotification}
@@ -37,6 +37,41 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: (_result, _error, arg) => [{ type: 'Post' as const, id: arg.id }],
     }),
+    addReaction: builder.mutation<
+      Post, 
+      { postId: string; reaction: ReactionName }>({
+      query: ({ postId, reaction }) => ({
+        url: `/posts/${postId}/reactions`,
+        method: 'POST',
+        body: { reaction },
+      }),
+      async onQueryStarted({ postId, reaction }, lifecycleApi) {
+        const getPostsPatchResult = lifecycleApi.dispatch(
+          apiSlice.util.updateQueryData('getPosts', undefined, (draft) => {
+            const post = draft.find((post) => post.id === postId)
+            if (post?.reactions) {
+              post.reactions[reaction]++
+            }
+       
+          })
+        )
+        const getPostPatchResult = lifecycleApi.dispatch(
+          apiSlice.util.updateQueryData('getPost', postId, (draft: Post) => {
+            if (draft.reactions) {
+              draft.reactions[reaction]++
+            }
+          })
+        )
+
+        try {
+          await lifecycleApi.queryFulfilled
+        } catch {
+          getPostsPatchResult.undo()
+          getPostPatchResult.undo()
+        }
+      }
+
+    }),
   }),
 })
 
@@ -45,4 +80,5 @@ export const {
   useGetPostQuery,
   useAddNewPostMutation,
   useEditPostMutation,
+  useAddReactionMutation,
 } = apiSlice
