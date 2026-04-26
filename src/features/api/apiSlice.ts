@@ -2,6 +2,7 @@ import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 
 import type {Post, NewPost} from '../../features/posts/postsSlice'
 import type {ClientNotification} from '../../features/notifications/notificationsSlice'
+// import type { User } from '../users/usersSlice'
 export type {Post, ClientNotification}
 
 export const apiSlice = createApi({

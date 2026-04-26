@@ -48,7 +48,7 @@ export const UserPage = () => {
 
   return (
     <section>
-      <h2>{user.name}</h2>
+      <h2>{user?.name ?? 'Unknown user'}</h2>
       <ul>
         {postTitles}
       </ul>
