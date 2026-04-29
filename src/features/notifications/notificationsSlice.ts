@@ -52,7 +52,7 @@ export const apiSliceWithNotifications = apiSlice.injectEndpoints({
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
     getNotifications: builder.query<ServerNotification[], void>({
       query: () => '/notifications',
-      async onCacheEntryAdded(arg, lifecycleApi) {
+      async onCacheEntryAdded(_arg, lifecycleApi) {
         const ws = new WebSocket('ws://localhost')
         try {
           await lifecycleApi.cacheDataLoaded
@@ -88,7 +88,8 @@ export const apiSliceWithNotifications = apiSlice.injectEndpoints({
 
           ws.removeEventListener('message', listener)
           ws.close()
-        } catch {
+        } catch (error) {
+          console.error('WebSocket listener setup failed', error)
           // If an error occurs, always close the socket
           ws.close()
         }
