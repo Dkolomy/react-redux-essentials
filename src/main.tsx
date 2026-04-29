@@ -14,7 +14,10 @@ import './primitiveui.css'
 import './index.css'
 
 type MockWorker = {
-  start: (options?: { onUnhandledRequest?: 'bypass' | 'warn' | 'error' }) => Promise<unknown>
+  start: (options?: {
+    onUnhandledRequest?: 'bypass' | 'warn' | 'error'
+    serviceWorker?: { url: string }
+  }) => Promise<unknown>
 }
 
 const mockWorker = worker as MockWorker
@@ -22,7 +25,10 @@ const mockWorker = worker as MockWorker
 // Wrap app rendering so we can wait for the mock API to initialize
 async function start() {
   // Start our mock API server
-  await mockWorker.start({ onUnhandledRequest: 'bypass' })
+  await mockWorker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
+  })
 
   void store.dispatch(apiSliceWithUsers.endpoints.getUsers.initiate())
 
