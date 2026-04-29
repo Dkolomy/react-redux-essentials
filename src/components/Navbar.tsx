@@ -34,7 +34,7 @@ export const Navbar = () => {
 
     const onRefreshNotificationsClicked = () => {
       console.log('Navbar onRefreshNotificationsClicked')
-      void dispatch(fetchNotificationsWebsocket())
+      dispatch(fetchNotificationsWebsocket())
     }
 
     let unreadNotificationsBadge: React.ReactNode | undefined
@@ -64,7 +64,7 @@ export const Navbar = () => {
   return (
     <nav>
       <section>
-        <h1>Redux Essentials Example</h1>
+        <h1>Posts App (React + Redux + Router)</h1>
         {navContent}
       </section>
     </nav>
